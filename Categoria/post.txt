@@ -1,0 +1,10 @@
+rota:
+http://localhost:3000/categoria
+
+
+
+body:
+{
+    "id_categoria": 1,
+    "nome_categoria": "Worship"
+}

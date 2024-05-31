@@ -1,0 +1,1 @@
+http://localhost:3000/setlist?id_categoria=1,2,3

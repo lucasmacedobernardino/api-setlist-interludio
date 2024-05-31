@@ -1,0 +1,10 @@
+rota: 
+http://localhost:3000/musica
+
+body:
+{
+    "nome_musica": "Que se abram os céus",
+    "nome_artista": "Nívea Soares",
+    "link_youtube_musica": "https://www.youtube.com/watch?v=kXKwkQk528A",
+    "fk_musica_categoria": 1
+}
