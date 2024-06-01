@@ -7,6 +7,7 @@ const pool = new Pool({
   database: "verceldb",
   password: "1HChEVbp3UvR",
   port: 5432,
+  ssl: true
 });
 
 module.exports = pool;
