@@ -54,12 +54,13 @@ app.get("/categoria", async (req,res) => {
 app.post('/musica', async (req, res) => {
   try {
     const { nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria } = req.body;
-
+    
     const musicaExistente = await pool.query(
       'SELECT * FROM musica WHERE nome_musica = $1 AND nome_artista = $2 AND link_youtube_musica = $3',
       [nome_musica, nome_artista, link_youtube_musica]
     );
-
+    console.log(musicaExistente)
+    console.log("AAAAAAAAAAAAAA")
     if (musicaExistente.rows.length > 0) {
       return res.status(400).json({ error: 'A música já está cadastrada.' });
     }
@@ -67,6 +68,8 @@ app.post('/musica', async (req, res) => {
       'INSERT INTO musica (nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria) VALUES ($1, $2, $3, $4) RETURNING *',
       [nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria]
     );
+    console.log(novaMusica)
+    console.log("AAAAAAAAAAAAAA")
     res.status(200).json(novaMusica.rows[0]);
   } catch (err) {
     console.error(err.message);
