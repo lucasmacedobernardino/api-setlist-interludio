@@ -83,39 +83,49 @@ app.get('/setlist', async (req, res) => {
     if (!idsString) {
       return res.status(400).send('ID de categoria não fornecido');
     }
+
     const idsArray = idsString.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
     if (idsArray.length === 0) {
       return res.status(400).send('Nenhum ID de categoria válido fornecido');
     }
-    const consultas = idsArray.map(async (numeroCategoria) => {
-      const query = `
-        SELECT * FROM musica 
-        WHERE fk_musica_categoria = ${numeroCategoria}
-        ORDER BY RANDOM() LIMIT 1
-      `
-      const resultado = await pool.query(query)
-      return resultado.rows[0] // Retorna apenas a primeira linha
-    })
 
-    // Aguarda todas as consultas serem concluídas
-    let resultados = await Promise.all(consultas)
-
-    // Remove duplicatas com base no id_musica
     const unicos = [];
     const idsUnicos = new Set();
+    let consultasRestantes = 10; 
 
-    resultados.forEach(musica => {
-      if (!idsUnicos.has(musica.id_musica)) {
-        idsUnicos.add(musica.id_musica);
-        unicos.push(musica);
-      }
-    });
+    while (unicos.length < 10 && consultasRestantes > 0) {
+      const consultas = idsArray.map(async (numeroCategoria) => {
+        const query = `
+          SELECT * FROM musica 
+          WHERE fk_musica_categoria = ${numeroCategoria}
+          ORDER BY RANDOM() LIMIT 1
+        `;
+        const resultado = await pool.query(query);
+        return resultado.rows[0]; 
+      });
+      const resultados = await Promise.all(consultas);
+
+      resultados.forEach(musica => {
+        if (musica && !idsUnicos.has(musica.id_musica) && unicos.length < 10) {
+          idsUnicos.add(musica.id_musica);
+          unicos.push(musica);
+        }
+      });
+
+      consultasRestantes--;
+    }
+
+    if (unicos.length < 10) {
+      return res.status(400).send('Não foi possível encontrar 10 músicas únicas.');
+    }
 
     res.status(200).send(unicos);
   } catch (err) {
+    console.error(err.message);
     res.status(500).send('Erro no servidor');
   }
 });
+
 
 
 
