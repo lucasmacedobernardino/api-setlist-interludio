@@ -77,39 +77,42 @@ app.post('/musica', async (req, res) => {
   }
 });
 
-// Rota para obter músicas por categorias selecionadas
 app.get('/setlist', async (req, res) => {
   try {
     const idsString = req.query.id_categoria;
     if (!idsString) {
       return res.status(400).send('ID de categoria não fornecido');
     }
-
     const idsArray = idsString.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
-    console.log(idsArray)
     if (idsArray.length === 0) {
       return res.status(400).send('Nenhum ID de categoria válido fornecido');
     }
-    let arrayMusicas = []
-
-    // Mapeia as consultas em um array de promessas
-    const consultas = idsArray.map(async (numeroCategoria, index) => {
-      console.log("NUMERO CATEGORIA: ", numeroCategoria, "\n")
+    const consultas = idsArray.map(async (numeroCategoria) => {
       const query = `
-      SELECT * FROM musica 
-      WHERE fk_musica_categoria = ${numeroCategoria}
-      ORDER BY RANDOM() LIMIT 1
+        SELECT * FROM musica 
+        WHERE fk_musica_categoria = ${numeroCategoria}
+        ORDER BY RANDOM() LIMIT 1
       `
       const resultado = await pool.query(query)
       return resultado.rows[0] // Retorna apenas a primeira linha
     })
 
     // Aguarda todas as consultas serem concluídas
-    const resultados = await Promise.all(consultas)
+    let resultados = await Promise.all(consultas)
 
-    res.status(200).send(resultados)
+    // Remove duplicatas com base no id_musica
+    const unicos = [];
+    const idsUnicos = new Set();
+
+    resultados.forEach(musica => {
+      if (!idsUnicos.has(musica.id_musica)) {
+        idsUnicos.add(musica.id_musica);
+        unicos.push(musica);
+      }
+    });
+
+    res.status(200).send(unicos);
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Erro no servidor');
   }
 });
