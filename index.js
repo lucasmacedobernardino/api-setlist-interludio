@@ -46,6 +46,27 @@ app.get('/categoria', async (req, res) => {
   }
 });
 
+app.put('/musica/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria } = req.body;
+
+    const updateMusica = await pool.query(
+      'UPDATE musica SET nome_musica = $1, nome_artista = $2, link_youtube_musica = $3, fk_musica_categoria = $4 WHERE id_musica = $5 RETURNING *',
+      [nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria, id]
+    );
+
+    if (updateMusica.rows.length === 0) {
+      return res.status(404).json({ error: 'Música não encontrada' });
+    }
+
+    res.status(200).json({ message: 'Música atualizada com sucesso', musica: updateMusica.rows[0] });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro ao atualizar a música');
+  }
+});
+
 app.post('/musica', async (req, res) => {
   try {
     const { nome_musica, nome_artista, link_youtube_musica, fk_musica_categoria } = req.body;
@@ -70,6 +91,23 @@ app.post('/musica', async (req, res) => {
     res.status(500).send('Erro no servidor');
   }
 });
+
+app.delete('/musica/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteMusica = await pool.query('DELETE FROM musica WHERE id_musica = $1 RETURNING *', [id]);
+
+    if (deleteMusica.rows.length === 0) {
+      return res.status(404).json({ error: 'Música não encontrada' });
+    }
+
+    res.status(200).json({ message: 'Música deletada com sucesso', musica: deleteMusica.rows[0] });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro ao deletar a música');
+  }
+});
+
 
 app.get('/setlist', async (req, res) => {
   try {
